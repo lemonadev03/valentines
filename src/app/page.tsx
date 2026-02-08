@@ -282,76 +282,82 @@ export default function Home() {
         (phase === "input" || phase === "success" || phase === "wiping") && (
           <div className="flex min-h-screen items-center justify-center">
             <div className="flex flex-col items-center">
-              <div
-                className="flex items-center"
-                style={{
-                  gap: successStep >= 3 ? "0px" : "12px",
-                  transition: "gap 0.8s ease",
-                }}
-              >
-                {Array.from({ length: NUM_CHARS }).map((_, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => {
-                      inputRefs.current[i] = el;
-                    }}
-                    type="text"
-                    inputMode="text"
-                    maxLength={1}
-                    value={values[i]}
-                    onChange={(e) => handleChange(i, e)}
-                    onKeyDown={(e) => handleKeyDown(i, e)}
-                    onPaste={i === 0 ? handlePaste : undefined}
-                    autoFocus={i === 0}
-                    className="input input-bordered h-16 text-center text-2xl font-semibold caret-transparent focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                    style={{
-                      width: successStep >= 3 ? "1.5ch" : "3.5rem",
-                      padding: successStep >= 3 ? "0" : undefined,
-                      transform: bouncing[i] ? "scale(0.9)" : "scale(1)",
-                      borderColor:
-                        successStep >= 2
-                          ? "transparent"
-                          : successStep >= 1
-                            ? "rgb(74, 222, 128)"
-                            : undefined,
-                      backgroundColor:
-                        successStep >= 2
-                          ? "transparent"
-                          : successStep >= 1
-                            ? "rgba(74, 222, 128, 0.1)"
-                            : undefined,
-                      boxShadow:
-                        successStep >= 2
-                          ? "none"
-                          : successStep >= 1
-                            ? "0 0 0 3px rgba(74, 222, 128, 0.25)"
-                            : bouncing[i]
-                              ? "0 0 0 3px rgba(99, 102, 241, 0.25)"
-                              : "none",
-                      transition: "all 0.8s ease",
-                    }}
-                  />
-                ))}
+              {/* Inputs + crossfade word share the same spot */}
+              <div className="relative">
+                {/* Input boxes */}
+                <div
+                  className="flex items-center"
+                  style={{
+                    gap: "8px",
+                    opacity: successStep >= 3 ? 0 : 1,
+                    transition: "opacity 0.6s ease",
+                  }}
+                >
+                  {Array.from({ length: NUM_CHARS }).map((_, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => {
+                        inputRefs.current[i] = el;
+                      }}
+                      type="text"
+                      inputMode="text"
+                      maxLength={1}
+                      value={values[i]}
+                      onChange={(e) => handleChange(i, e)}
+                      onKeyDown={(e) => handleKeyDown(i, e)}
+                      onPaste={i === 0 ? handlePaste : undefined}
+                      autoFocus={i === 0}
+                      className="input input-bordered text-center text-2xl font-semibold caret-transparent focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      style={{
+                        width: "2.75rem",
+                        height: "2.75rem",
+                        padding: 0,
+                        transform: bouncing[i] ? "scale(0.9)" : "scale(1)",
+                        borderColor:
+                          successStep >= 2
+                            ? "transparent"
+                            : successStep >= 1
+                              ? "rgb(74, 222, 128)"
+                              : undefined,
+                        backgroundColor:
+                          successStep >= 2
+                            ? "transparent"
+                            : successStep >= 1
+                              ? "rgba(74, 222, 128, 0.1)"
+                              : undefined,
+                        boxShadow:
+                          successStep >= 2
+                            ? "none"
+                            : successStep >= 1
+                              ? "0 0 0 3px rgba(74, 222, 128, 0.25)"
+                              : bouncing[i]
+                                ? "0 0 0 3px rgba(99, 102, 241, 0.25)"
+                                : "none",
+                        transition: "all 0.8s ease",
+                      }}
+                    />
+                  ))}
+                </div>
+                {/* Plain text word — fades in on top */}
                 {successStep >= 3 && (
                   <span
-                    className="text-2xl font-semibold text-base-content"
-                    style={{
-                      animation: "fadeIn 0.3s ease both",
-                    }}
+                    className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-base-content"
+                    style={{ opacity: 0, animation: "fadeIn 0.8s ease 0.5s both" }}
                   >
-                    ,
+                    {values.join("")},
                   </span>
                 )}
+                {/* Typewriter — absolutely positioned below, no layout shift */}
+                {successStep >= 4 && (
+                  <p
+                    className="absolute left-0 right-0 text-center font-bold text-lg mt-3 text-base-content"
+                    style={{ opacity: 0, animation: "fadeSlideUp 0.6s ease 0.1s both", top: "100%" }}
+                  >
+                    {SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}
+                    <span className="animate-blink">|</span>
+                  </p>
+                )}
               </div>
-              {successStep >= 4 && (
-                <p
-                  className="font-bold text-lg mt-3 text-base-content"
-                  style={{ animation: "fadeIn 0.3s ease both" }}
-                >
-                  {SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}
-                  <span className="animate-blink">|</span>
-                </p>
-              )}
             </div>
           </div>
         )}
