@@ -1,2 +1,38 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@font-face {
+  font-family: "Supreme";
+  src: url("/fonts/Supreme-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Supreme";
+  src: url("/fonts/Supreme-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Supreme";
+  src: url("/fonts/Supreme-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Supreme";
+  src: url("/fonts/Supreme-BoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/Nunito-ExtraBold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
