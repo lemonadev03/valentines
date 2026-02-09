@@ -68,6 +68,15 @@ export default function Home() {
   const [successStep, setSuccessStep] = useState(0);
   const [typedMessageIndex, setTypedMessageIndex] = useState(-1);
   const [letterKey, setLetterKey] = useState(0);
+  const [isMobile, setIsMobile] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const triggerBounce = useCallback((index: number) => {
     setBouncing((prev) => {
@@ -282,6 +291,11 @@ export default function Home() {
         (phase === "input" || phase === "success" || phase === "wiping") && (
           <div className="flex min-h-screen items-center justify-center">
             <div className="flex flex-col items-center">
+              {isMobile && phase === "input" && (
+                <p className="text-sm text-base-content/50 mb-4 text-center">
+                  Open this on a computer
+                </p>
+              )}
               {/* Inputs + crossfade word share the same spot */}
               <div className="relative">
                 {/* Input boxes */}
@@ -289,7 +303,7 @@ export default function Home() {
                   className="flex items-center"
                   style={{
                     gap: "8px",
-                    opacity: successStep >= 3 ? 0 : 1,
+                    opacity: successStep >= 3 ? 0 : isMobile && phase === "input" ? 0.4 : 1,
                     transition: "opacity 0.6s ease",
                   }}
                 >
@@ -303,11 +317,12 @@ export default function Home() {
                       inputMode="text"
                       maxLength={1}
                       value={values[i]}
+                      disabled={isMobile && phase === "input"}
                       onChange={(e) => handleChange(i, e)}
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       onPaste={i === 0 ? handlePaste : undefined}
-                      autoFocus={i === 0}
-                      className="input input-bordered text-center text-2xl font-semibold caret-transparent focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      autoFocus={!isMobile && i === 0}
+                      className={`input input-bordered text-center text-2xl font-semibold caret-transparent focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary${isMobile && phase === "input" ? " cursor-not-allowed pointer-events-none" : ""}`}
                       style={{
                         width: "2.75rem",
                         height: "2.75rem",
