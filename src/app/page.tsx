@@ -67,6 +67,8 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [cloudsReady, setCloudsReady] = useState(false);
   const [messageVisible, setMessageVisible] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(false);
+  const [shaking, setShaking] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
@@ -116,8 +118,20 @@ export default function Home() {
     (newValues: string[]) => {
       if (phase !== "input") return;
       const allFilled = newValues.every((v) => v.length > 0);
-      if (allFilled) {
+      if (!allFilled) return;
+
+      const entered = newValues.join("");
+      if (entered.toLowerCase() === "gaile") {
         setTimeout(() => setPhase("success"), 300);
+      } else {
+        setErrorMsg(true);
+        setShaking(true);
+        setTimeout(() => setShaking(false), 400);
+        setTimeout(() => {
+          setValues(Array(NUM_CHARS).fill(""));
+          inputRefs.current[0]?.focus();
+        }, 600);
+        setTimeout(() => setErrorMsg(false), 2000);
       }
     },
     [phase]
@@ -330,20 +344,20 @@ export default function Home() {
           pointerEvents: "none",
         }}
       />
-      {/* DEV: test telegram notification */}
+      {/* DEV: test telegram notification
       <button
         onClick={() => fetch("/api/notify", { method: "POST" })}
         className="fixed top-4 left-4 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
       >
         Test TG
-      </button>
-      {/* DEV: reset answered state */}
+      </button> */}
+      {/* DEV: reset answered state
       <button
         onClick={() => { localStorage.removeItem("answered"); setAnswered(false); }}
         className="fixed top-4 left-24 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
       >
         Reset
-      </button>
+      </button> */}
       {/* Volume gate */}
       {phase === "volume" && (
         <div
@@ -408,6 +422,19 @@ export default function Home() {
               >
                 Please type in your name!
               </p>
+              <p
+                className="text-sm text-white mb-3 text-center"
+                style={{
+                  fontFamily: "'Nunito', sans-serif",
+                  fontWeight: 700,
+                  textShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 3px rgba(0,0,0,0.3)",
+                  opacity: errorMsg ? 1 : 0,
+                  transition: "opacity 0.3s ease",
+                  pointerEvents: "none",
+                }}
+              >
+                Oops! Not quite...
+              </p>
               {/* Inputs + crossfade word share the same spot */}
               <div className="relative">
                 {/* Input boxes */}
@@ -417,6 +444,7 @@ export default function Home() {
                     gap: "8px",
                     opacity: successStep >= 3 ? 0 : isMobile && phase === "input" ? 0.4 : 1,
                     transition: "opacity 0.6s ease",
+                    animation: shaking ? "shake 0.4s ease" : "none",
                   }}
                 >
                   {Array.from({ length: NUM_CHARS }).map((_, i) => (
@@ -546,9 +574,9 @@ export default function Home() {
             return (
             <div
               key={i}
-              className="rounded-2xl shadow-lg overflow-hidden"
+              className="rounded-2xl shadow-lg overflow-hidden backdrop-blur-xl"
               style={{
-                backgroundColor: CARD_COLORS[i],
+                backgroundColor: i % 2 === 0 ? "rgba(249, 209, 220, 0.3)" : "rgba(240, 184, 200, 0.3)",
                 height: "120vh",
                 margin: "0 -8px",
                 flex: activeCard === i ? 5 : 1,
@@ -605,108 +633,209 @@ export default function Home() {
       {/* Final letter */}
       {phase === "done" && (
         <div className="min-h-screen py-20 px-6 flex justify-center overflow-y-auto">
-          {/* DEV: replay letter animation */}
+          {/* DEV: replay letter animation
           <button
             onClick={() => setLetterKey((k) => k + 1)}
             className="fixed top-4 right-4 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
           >
             Replay
-          </button>
-          <article key={letterKey} className="max-w-2xl w-full text-left rounded-2xl backdrop-blur-lg bg-black/20 px-12 py-10" style={{ opacity: 0, animation: "fadeIn 0.8s ease 0.1s both", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}>
-            {/* Step 1: Greeting */}
+          </button> */}
+          <article key={letterKey} className="max-w-3xl w-full text-left rounded-2xl backdrop-blur-lg bg-black/40 px-12 py-10" style={{ opacity: 0, animation: "fadeIn 0.8s ease 0.1s both", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}>
+            {/* Greeting */}
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.2s both" }}>
-              <p className="text-4xl text-white mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Dear you,</p>
+              <p className="text-4xl text-white mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Hi Gaile!</p>
             </div>
 
-            {/* Body — paragraph by paragraph */}
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.6s both" }}>
-              <p className="text-base text-white leading-relaxed mb-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Pellentesque habitant
-                morbi tristique senectus et netus et malesuada fames ac turpis
-                egestas.
+            {/* Body */}
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.5s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I hope you liked the drink, the poem, and the flowers! I actually loved how the flowers turned out, I think they were pretty, BUT they were nowhere near as pretty as the girl they were for.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.0s both" }}>
-              <p className="text-base text-white leading-relaxed mb-4">
-                Duis aute irure dolor in reprehenderit in voluptate velit esse
-                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                cupidatat non proident, sunt in culpa qui officia deserunt
-                mollit anim id est laborum. Vivamus sagittis lacus vel augue
-                laoreet rutrum faucibus dolor auctor. Maecenas sed diam eget
-                risus varius blandit sit amet non magna.
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.8s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                You looked <em>stunning</em>.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                And don&apos;t take my word for it – I bet everyone in that room thought the same thing!
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.1s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I could ramble on for a lot longer about how great I think you are, or how we all admire how committed you are in helping others, or how impressive it is that you&apos;re doing what you&apos;re doing, but these are things I&apos;d rather say in person (and I hope I won&apos;t be gushing too much over it when that happens). I just love it when people do cool stuff, and you keep on doing it every single time.
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.4s both" }}>
-              <p className="text-base text-white leading-relaxed mb-4">
-                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio.
-                Nullam varius, turpis et commodo pharetra, est eros bibendum
-                elit, nec luctus magna felis sollicitudin mauris. Integer in
-                mauris eu nibh euismod gravida. Duis ac tellus et risus
-                vulputate vehicula. Donec lobortis risus a elit.
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I bet we might sound like broken records when we repeat this praise, but I want you to know that we mean it.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <strong>Everyone <s>thinks</s> knows you&apos;re amazing!</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.8s both" }}>
-              <p className="text-base text-white leading-relaxed mb-4">
-                Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies
-                nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget
-                condimentum rhoncus, sem quam semper libero, sit amet adipiscing
-                sem neque sed ipsum. Nam quam nunc, blandit vel, luctus
-                pulvinar, hendrerit id, lorem.
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.7s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                But through all the euphonious lines, I felt something deeper. There&apos;s something else, more than the observations you already know or applause you&apos;ve already heard.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <strong>Simply by being you, you make people feel, think, and act a certain way.</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.2s both" }}>
-              <p className="text-base text-white leading-relaxed mb-4">
-                Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor
-                eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante,
-                dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra
-                nulla ut metus varius laoreet. Quisque rutrum. Aenean
-                imperdiet. Etiam ultricies nisi vel augue. Integer ante arcu,
-                accumsan a, consectetuer eget, posuere ut, mauris.
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.0s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                You&apos;re like the warm sun on a chilly morning, wherever you walk, it simply lightens up and feels your radiance.
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.3s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                You&apos;re the breeze that lets people relax and take deep breaths, knowing that they&apos;re cared for and have nothing to worry about.
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.6s both" }}>
-              <p className="text-base text-white leading-relaxed mb-8">
-                Praesent congue erat at massa. Sed cursus turpis vitae tortor.
-                Donec posuere vulputate arcu. Phasellus accumsan cursus velit.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia Curae; Sed aliquam, nisi quis porttitor congue,
-                elit erat euismod orci, ac placerat dolor lectus quis orci.
-                Phasellus consectetuer vestibulum elit.
+              <p className="text-lg text-white leading-relaxed mb-6">
+                You&apos;re the <strong>flowers</strong> that people stop walking for to appreciate, the best <strong>smiles</strong> we put on to share joy with one another, the <strong>direction</strong> that our hearts are drawn to.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                And, <em>damn</em>, did I get drawn so strongly.
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.9s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                We&apos;ve known each other for quite some time now, but only recently did I take notice of how I actually felt.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                It took me some time to convince myself that it wasn&apos;t just an absolutely friendly / platonic sense.
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.2s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                That someone this admirable, this powerful, but still, if I&apos;m being honest, so gorgeously cute, is someone that I would simply admire from far away?
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                Nope. <em>I miss all the shots I don&apos;t take</em>. I believed in this, and it&apos;s what got me to where I am, and I won&apos;t doubt this saying now.
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.5s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                And as I was lost in thought, pondering the situation, I found myself asking a few questions that piqued my curiosity. I was thinking,
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <em>If, on the surface, I already see her as an amazing person, what could it look like if I got to know her better?</em><br />
+                <em>What drives her?</em><br />
+                <em>What ambitious plans does she have for herself?</em>
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.8s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                But more than that, beneath all the strength you hold, I&apos;d love to know what the person underneath is like.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <em>What&apos;s her favorite color? Dish? <u>Flower</u>?</em><br />
+                <em>What songs does she listen to when she&apos;s happy? Sad? Bored?</em><br />
+                <em>Which shows did she grow up with as a kid?</em><br />
+                <em>What does she do on the weekends?</em><br />
+                <em>Will she get the brainrot references I might make?</em>
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.1s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                And I&apos;m willing to bet, as I gradually uncover the answers to these questions, I&apos;ll end up even more drawn to you.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                Although I think I&apos;ll like you (because again you just blow me away every time), I&apos;m conscious enough that with how little our actual interactions have been, it&apos;s too soon to say that I actually <strong>like</strong> you already. That could be a hasty generalization.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                Do I think you&apos;re cool and awesome and smart and hardworking and charismatic and praiseworthy and … (and a lot more that I&apos;ll truncate for the sake of brevity)?
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <strong>Yes</strong>.
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.4s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                But we&apos;ve only got to hang out and chat a few times.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                So, of course, the natural response to that is <strong>I&apos;d like to change that!</strong> To answer the questions I posed earlier—
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <strong>I&apos;d love to get to know you more!</strong>
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.7s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                And of course, in doing this, I&apos;d love to let you get to know me more, too!
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                Which is funny because I think of all the people in the community, I&apos;m definitely part of the subset who are an open book. Or this could just be me claiming a lazy excuse to be a yapper HAHA
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                But in any case, the reason why I&apos;m proposing this is that I believe (and am hoping) that I could provide value to you, too. <em>I mean, that&apos;s what relationships (not just romantic ones!) are for, right?</em>
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.0s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I know that you&apos;re a well-established person, and I have the utmost respect for you. I normally would be <em>shy</em> to proclaim that I can provide value to someone like that, and I can say that what I did is a bold move for myself.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                But what I have promised to myself long ago is that I will work to be a man <strong>deserving</strong> of someone&apos;s trust, partnership, <em>and presence</em>. And in this adventure that I embarked on a long time ago, and I still am undertaking, with all the work I&apos;d say I put in, I&apos;m confident that I am at a point to share what I learned and experienced with others.
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                <strong>I&apos;d love to introduce myself to you.</strong>
+              </p>
+            </div>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.3s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I want to be genuine and honest with you about my intentions, as an initial show of trust.<br />
+                There&apos;s going to be a lot of maybes here, but I&apos;ve been known to be an optimistic person :D
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I&apos;d love for us to know each other more.<br />
+                Maybe because of how good we could vibe, we became close!<br />
+                Maybe because of that, it might just feel right. We&apos;ll know by then :&gt;
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-6">
+                I&apos;m not saying that it will happen because it&apos;s way too soon for either of us to say, but I see the chance of it happening, and this is my way of saying —
+              </p>
+              <p className="text-lg text-white leading-relaxed mb-16">
+                <strong>I, Lesmon, would love to try this journey with you</strong>.
               </p>
             </div>
 
-            {/* Closing */}
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.0s both" }}>
-              <p className="text-base text-white">Sample closer here,</p>
-              <p className="text-lg font-semibold text-white mt-1 mb-12">
-                Me
+            {/* Valentine's question + CTA */}
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.6s both" }}>
+              <p className="text-lg text-white leading-relaxed mb-10">
+                So, in hoping that you feel the same way, how about as a first step of this journey,
               </p>
-              <div className="flex flex-col items-center mt-12 gap-3">
+              <p className="text-2xl text-white text-center mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>
+                Will you be my Valentine&apos;s Date?
+              </p>
+              <div className="flex flex-col items-center mt-4 gap-3">
                 {answered ? (
                   <p className="text-sm text-white">Thanks for checking this out — I&apos;ll chat you in a bit!</p>
                 ) : (
-                  <button
-                    onClick={() => {
-                      localStorage.setItem("answered", "true");
-                      setShowModal(true);
-                      fetch("/api/notify", { method: "POST" });
-                    }}
-                    className="rounded-full px-10 py-3 text-base font-semibold cursor-pointer"
-                    style={{
-                      fontFamily: "'Nunito', sans-serif",
-                      background: "white",
-                      color: "#d4688e",
-                      border: "2px solid #d4688e",
-                      transition: "background 0.2s ease, color 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#d4688e"; e.currentTarget.style.color = "white"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "#d4688e"; }}
-                  >
-                    I&apos;m ready to answer!
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem("answered", "true");
+                        setShowModal(true);
+                        fetch("/api/notify", { method: "POST" });
+                      }}
+                      className="rounded-full px-10 py-3 text-base font-semibold cursor-pointer"
+                      style={{
+                        fontFamily: "'Nunito', sans-serif",
+                        background: "white",
+                        color: "#d4688e",
+                        border: "2px solid #d4688e",
+                        transition: "background 0.2s ease, color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#d4688e"; e.currentTarget.style.color = "white"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "#d4688e"; }}
+                    >
+                      I&apos;m ready to answer!
+                    </button>
+                    <p className="text-sm text-white/60 text-center mt-2">Take all the time you need to process and think!<br />No pressure, this button will just be here for you!</p>
+                  </>
                 )}
               </div>
 
@@ -720,6 +849,19 @@ export default function Home() {
 
 
       <style>{`
+        article ::selection {
+          background: rgba(244, 143, 177, 0.45);
+          color: white;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15% { transform: translateX(-6px); }
+          30% { transform: translateX(5px); }
+          45% { transform: translateX(-4px); }
+          60% { transform: translateX(3px); }
+          75% { transform: translateX(-2px); }
+          90% { transform: translateX(1px); }
+        }
         @keyframes wordPulse {
           0% { opacity: 0; transform: scale(0.97); }
           15% { opacity: 1; transform: scale(1); }
