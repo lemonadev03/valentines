@@ -6,21 +6,26 @@ export async function POST() {
     return Response.json({ error: "Missing Telegram config" }, { status: 500 });
   }
 
-  const res = await fetch(
-    `https://api.telegram.org/bot${token}/sendMessage`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: "She pressed the button! 💌",
-      }),
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const res = await fetch(
+        `https://api.telegram.org/bot${token}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: "She pressed the button! 💌",
+          }),
+        }
+      );
+      if (res.ok) return Response.json({ ok: true });
+    } catch {
+      // retry after a short delay
     }
-  );
-
-  if (!res.ok) {
-    return Response.json({ error: "Failed to send" }, { status: 502 });
+    if (attempt < maxRetries - 1) await new Promise((r) => setTimeout(r, 2000));
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ error: "Failed after retries" }, { status: 502 });
 }

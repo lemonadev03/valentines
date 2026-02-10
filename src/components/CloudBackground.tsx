@@ -17,11 +17,11 @@ export default function CloudBackground({ visible = true, onReady }: { visible?:
         mouseControls: false,
         touchControls: false,
         gyroControls: false,
-        skyColor: 0xf2dfe8,
-        cloudColor: 0xf0ecee,
-        cloudShadowColor: 0xbfa0ac,
-        sunColor: 0xffaa88,
-        sunlightColor: 0xffbb99,
+        skyColor: 0xe8ddef,
+        cloudColor: 0xf0ecf0,
+        cloudShadowColor: 0xa0a0bf,
+        sunColor: 0xeea8c0,
+        sunlightColor: 0xddb0c8,
         speed: 0.3,
       });
       // Force 1x pixel ratio — blur overlay hides the difference
@@ -39,7 +39,7 @@ export default function CloudBackground({ visible = true, onReady }: { visible?:
       className="fixed inset-0 -z-10"
       style={{
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.6s ease",
+        transition: "opacity 1s ease",
         pointerEvents: "none",
       }}
     >
