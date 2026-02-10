@@ -16,7 +16,7 @@ export async function POST() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: chatId,
-            text: "She pressed the button! 💌",
+            text: "Gaile pressed the button! 💌",
           }),
         }
       );
