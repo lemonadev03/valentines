@@ -230,7 +230,9 @@ export default function Home() {
 
     function showWord(index: number) {
       if (index >= WORDS.length) {
-        timeout = setTimeout(() => setPhase("done"), 500);
+        // Last word's animation is still playing — wait for its fade-out to finish
+        const lastInterval = getWordInterval(WORDS.length - 1, WORDS.length);
+        timeout = setTimeout(() => setPhase("done"), lastInterval);
         return;
       }
       setCurrentWordIndex(index);
