@@ -473,7 +473,6 @@ export default function Home() {
                       opacity: successStep >= 4 && successStep < 6 ? 1 : 0,
                       transition: "opacity 0.8s ease",
                       textShadow: "0 2px 12px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.3)",
-                      color: "#f9d1dc",
                     }}
                   >
                     Gaile,
@@ -492,8 +491,8 @@ export default function Home() {
                     }}
                   >
                     <p
-                      className="font-bold text-lg whitespace-nowrap text-left"
-                      style={{ color: "#f9d1dc", textShadow: "0 2px 12px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.3)" }}
+                      className="font-bold text-lg text-white whitespace-nowrap text-left"
+                      style={{ textShadow: "0 2px 12px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.3)" }}
                     >
                       <span>{SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}</span>
                       <span className="invisible">{SUCCESS_MESSAGE.slice(typedMessageIndex + 1)}</span>
