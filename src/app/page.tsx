@@ -244,9 +244,10 @@ export default function Home() {
 
     function showWord(index: number) {
       if (index >= WORDS.length) {
-        // Last word's animation is still playing — wait for its fade-out to finish
-        const lastInterval = getWordInterval(WORDS.length - 1, WORDS.length);
-        timeout = setTimeout(() => setPhase("done"), lastInterval);
+        // Show "Gaile" as a slow breather after the fast words
+        setCurrentWordIndex(WORDS.length);
+        // Wait for the slow Gaile animation to finish, then transition
+        timeout = setTimeout(() => setPhase("done"), 3500);
         return;
       }
       setCurrentWordIndex(index);
@@ -617,15 +618,17 @@ export default function Home() {
         <div className="fixed inset-0 z-20 flex items-center justify-center">
           <span
             key={currentWordIndex}
-            className="text-6xl font-bold text-white select-none"
+            className={`font-bold text-white select-none ${currentWordIndex === WORDS.length ? "text-7xl" : "text-6xl"}`}
             style={{
               fontFamily: "'Nunito', sans-serif",
               fontWeight: 800,
               textShadow: "0 1px 6px rgba(0,0,0,0.3)",
-              animation: `wordPulse ${getWordInterval(currentWordIndex, WORDS.length)}ms ease-in-out both`,
+              animation: currentWordIndex === WORDS.length
+                ? "gailePulse 3s ease-in-out both"
+                : `wordPulse ${getWordInterval(currentWordIndex, WORDS.length)}ms ease-in-out both`,
             }}
           >
-            {WORDS[currentWordIndex]}
+            {currentWordIndex === WORDS.length ? "Gaile" : WORDS[currentWordIndex]}
           </span>
         </div>
       )}
@@ -642,17 +645,17 @@ export default function Home() {
           </button> */}
           <article key={letterKey} className="max-w-3xl w-full text-left rounded-2xl backdrop-blur-lg bg-black/40 px-12 py-10" style={{ opacity: 0, animation: "fadeIn 0.8s ease 0.1s both", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}>
             {/* Greeting */}
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.2s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.2s both" }}>
               <p className="text-4xl text-white mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Hi Gaile!</p>
             </div>
 
             {/* Body */}
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.5s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.5s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 I hope you liked the drink, the poem, and the flowers! I actually loved how the flowers turned out, I think they were pretty, BUT they were nowhere near as pretty as the girl they were for.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.8s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.8s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 You looked <em>stunning</em>.
               </p>
@@ -660,12 +663,12 @@ export default function Home() {
                 And don&apos;t take my word for it – I bet everyone in that room thought the same thing!
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.1s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.1s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 I could ramble on for a lot longer about how great I think you are, or how we all admire how committed you are in helping others, or how impressive it is that you&apos;re doing what you&apos;re doing, but these are things I&apos;d rather say in person (and I hope I won&apos;t be gushing too much over it when that happens). I just love it when people do cool stuff, and you keep on doing it every single time.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.4s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.4s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 I bet we might sound like broken records when we repeat this praise, but I want you to know that we mean it.
               </p>
@@ -673,7 +676,7 @@ export default function Home() {
                 <strong>Everyone <s>thinks</s> knows you&apos;re amazing!</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.7s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.7s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 But through all the euphonious lines, I felt something deeper. There&apos;s something else, more than the observations you already know or applause you&apos;ve already heard.
               </p>
@@ -681,17 +684,17 @@ export default function Home() {
                 <strong>Simply by being you, you make people feel, think, and act a certain way.</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.0s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.0s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 You&apos;re like the warm sun on a chilly morning, wherever you walk, it simply lightens up and feels your radiance.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.3s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.3s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 You&apos;re the breeze that lets people relax and take deep breaths, knowing that they&apos;re cared for and have nothing to worry about.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.6s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.6s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 You&apos;re the <strong>flowers</strong> that people stop walking for to appreciate, the best <strong>smiles</strong> we put on to share joy with one another, the <strong>direction</strong> that our hearts are drawn to.
               </p>
@@ -699,7 +702,7 @@ export default function Home() {
                 And, <em>damn</em>, did I get drawn so strongly.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.9s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.9s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 We&apos;ve known each other for quite some time now, but only recently did I take notice of how I actually felt.
               </p>
@@ -707,7 +710,7 @@ export default function Home() {
                 It took me some time to convince myself that it wasn&apos;t just an absolutely friendly / platonic sense.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.2s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.2s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 That someone this admirable, this powerful, but still, if I&apos;m being honest, so gorgeously cute, is someone that I would simply admire from far away?
               </p>
@@ -715,7 +718,7 @@ export default function Home() {
                 Nope. <em>I miss all the shots I don&apos;t take</em>. I believed in this, and it&apos;s what got me to where I am, and I won&apos;t doubt this saying now.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.5s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.5s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 And as I was lost in thought, pondering the situation, I found myself asking a few questions that piqued my curiosity. I was thinking,
               </p>
@@ -725,7 +728,7 @@ export default function Home() {
                 <em>What ambitious plans does she have for herself?</em>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.8s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.8s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 But more than that, beneath all the strength you hold, I&apos;d love to know what the person underneath is like.
               </p>
@@ -737,7 +740,7 @@ export default function Home() {
                 <em>Will she get the brainrot references I might make?</em>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.1s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.1s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 And I&apos;m willing to bet, as I gradually uncover the answers to these questions, I&apos;ll end up even more drawn to you.
               </p>
@@ -751,7 +754,7 @@ export default function Home() {
                 <strong>Yes</strong>.
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.4s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.4s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 But we&apos;ve only got to hang out and chat a few times.
               </p>
@@ -762,7 +765,7 @@ export default function Home() {
                 <strong>I&apos;d love to get to know you more!</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 4.7s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.7s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 And of course, in doing this, I&apos;d love to let you get to know me more, too!
               </p>
@@ -773,7 +776,7 @@ export default function Home() {
                 But in any case, the reason why I&apos;m proposing this is that I believe (and am hoping) that I could provide value to you, too. <em>I mean, that&apos;s what relationships (not just romantic ones!) are for, right?</em>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.0s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 6.0s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 I know that you&apos;re a well-established person, and I have the utmost respect for you. I normally would be <em>shy</em> to proclaim that I can provide value to someone like that, and I can say that what I did is a bold move for myself.
               </p>
@@ -784,7 +787,7 @@ export default function Home() {
                 <strong>I&apos;d love to introduce myself to you.</strong>
               </p>
             </div>
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.3s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 6.3s both" }}>
               <p className="text-lg text-white leading-relaxed mb-6">
                 I want to be genuine and honest with you about my intentions, as an initial show of trust.<br />
                 There&apos;s going to be a lot of maybes here, but I&apos;ve been known to be an optimistic person :D
@@ -803,7 +806,7 @@ export default function Home() {
             </div>
 
             {/* Valentine's question + CTA */}
-            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 5.6s both" }}>
+            <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 6.6s both" }}>
               <p className="text-lg text-white leading-relaxed mb-10">
                 So, in hoping that you feel the same way, how about as a first step of this journey,
               </p>
@@ -861,6 +864,12 @@ export default function Home() {
           60% { transform: translateX(3px); }
           75% { transform: translateX(-2px); }
           90% { transform: translateX(1px); }
+        }
+        @keyframes gailePulse {
+          0% { opacity: 0; transform: scale(0.97); }
+          25% { opacity: 1; transform: scale(1); }
+          75% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(1.02); }
         }
         @keyframes wordPulse {
           0% { opacity: 0; transform: scale(0.97); }
