@@ -7,6 +7,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  openGraph: {
+    title: "For Gaile",
+    description: "Will you be my valentine?",
+    images: ["/og.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "For Gaile",
+    description: "Will you be my valentine?",
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({

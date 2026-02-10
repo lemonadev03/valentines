@@ -5,28 +5,19 @@ import { ReactLenis } from "lenis/react";
 import CloudBackground from "@/components/CloudBackground";
 
 const NUM_CHARS = 5;
-const NUM_CARDS = 6;
+const NUM_CARDS = 4;
 
-// Outside-in: 1st+6th → 2nd+5th → 3rd+4th
-const CARD_DELAYS = [0, 150, 300, 300, 150, 0];
+// Outside-in: 1st+4th → 2nd+3rd
+const CARD_DELAYS = [0, 150, 150, 0];
 
 const CARD_COLORS = [
-  "bg-base-200",
-  "bg-base-300",
-  "bg-base-200",
-  "bg-base-300",
-  "bg-base-200",
-  "bg-base-300",
+  "#f9d1dc",
+  "#f0b8c8",
+  "#f9d1dc",
+  "#f0b8c8",
 ];
 
-const SPOTLIGHT_COLORS = [
-  "bg-rose-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-emerald-200",
-  "bg-violet-200",
-  "bg-orange-200",
-];
+const CARD_IMAGES = ["/0.jpeg", "/1.jpg", "/2.JPG", "/3.jpg"];
 
 
 // Words that describe her
@@ -75,6 +66,7 @@ export default function Home() {
   const [answered, setAnswered] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [cloudsReady, setCloudsReady] = useState(false);
+  const [messageVisible, setMessageVisible] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
@@ -138,31 +130,41 @@ export default function Home() {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     // t=0ms — green flash + haptic
+    (document.activeElement as HTMLElement)?.blur();
     setSuccessStep(1);
     navigator.vibrate?.(50);
 
     // t=1000ms — borders fade away
     timers.push(setTimeout(() => setSuccessStep(2), 1000));
 
-    // t=2000ms — letters collapse, comma appears
+    // t=2000ms — inputs fade out
     timers.push(setTimeout(() => setSuccessStep(3), 2000));
 
-    // t=3200ms — start typewriter
+    // t=3000ms — "Gaile," appears (after inputs have faded)
+    timers.push(setTimeout(() => setSuccessStep(4), 3000));
+
+    // t=4200ms — start typewriter
     timers.push(
       setTimeout(() => {
-        setSuccessStep(4);
+        setSuccessStep(5);
         let charIndex = 0;
         const typeInterval = setInterval(() => {
           setTypedMessageIndex(charIndex);
           charIndex++;
           if (charIndex >= SUCCESS_MESSAGE.length) {
             clearInterval(typeInterval);
-            // 2s pause after typing complete, then wipe
-            timers.push(setTimeout(() => setPhase("wiping"), 2000));
+            // Fade out "Gaile, this is for you."
+            timers.push(setTimeout(() => setSuccessStep(6), 800));
+            // Show message after fade out
+            timers.push(setTimeout(() => setMessageVisible(true), 1800));
+            // Fade out message
+            timers.push(setTimeout(() => setMessageVisible(false), 4300));
+            // Then wipe
+            timers.push(setTimeout(() => setPhase("wiping"), 5200));
           }
         }, 90);
         timers.push(typeInterval as unknown as ReturnType<typeof setTimeout>);
-      }, 3200)
+      }, 4200)
     );
 
     return () => {
@@ -425,15 +427,16 @@ export default function Home() {
                       inputMode="text"
                       maxLength={1}
                       value={values[i]}
-                      disabled={isMobile && phase === "input"}
+                      disabled={!!isMobile && phase === "input"}
                       onChange={(e) => handleChange(i, e)}
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       onPaste={i === 0 ? handlePaste : undefined}
-                      autoFocus={!isMobile && i === 0}
-                      className={`text-center text-2xl font-semibold caret-transparent${isMobile && phase === "input" ? " cursor-not-allowed pointer-events-none" : ""}`}
+                      autoFocus={!isMobile && i === 0 || undefined}
+                      className={`text-center text-2xl font-semibold${isMobile && phase === "input" ? " cursor-not-allowed pointer-events-none" : ""}`}
                       onFocus={(e) => { e.currentTarget.style.borderColor = "#b0446a"; e.currentTarget.style.boxShadow = "0 0 0 4px rgba(212,104,142,0.35)"; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = "#d4688e"; e.currentTarget.style.boxShadow = "none"; }}
                       style={{
+                        caretColor: "transparent",
                         outline: "none",
                         borderRadius: "12px",
                         fontFamily: "'Nunito', sans-serif",
@@ -460,27 +463,38 @@ export default function Home() {
                     />
                   ))}
                 </div>
-                {/* Plain text word — fades in on top */}
+                {/* Plain text word — mounts at step 3, fades in at step 4, fades out at step 6 */}
                 {successStep >= 3 && (
                   <span
                     className="absolute inset-0 flex items-center justify-center text-2xl text-white"
-                    style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, opacity: 0, animation: "fadeIn 0.8s ease 0.5s both", textShadow: "0 1px 6px rgba(0,0,0,0.3)" }}
+                    style={{
+                      fontFamily: "'Nunito', sans-serif",
+                      fontWeight: 800,
+                      opacity: successStep >= 4 && successStep < 6 ? 1 : 0,
+                      transition: "opacity 0.8s ease",
+                      textShadow: "0 1px 6px rgba(0,0,0,0.3)",
+                    }}
                   >
                     Gaile,
                   </span>
                 )}
-                {/* Typewriter — absolutely positioned below, fixed width so text types rightward */}
-                {successStep >= 4 && (
+                {/* Typewriter — fades out at step 6 */}
+                {successStep >= 5 && (
                   <div
                     className="absolute mt-3"
-                    style={{ top: "100%", left: "50%", transform: "translateX(-50%)", opacity: 0, animation: "fadeIn 0.6s ease 0.1s both" }}
+                    style={{
+                      top: "100%",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      opacity: successStep >= 6 ? 0 : 1,
+                      transition: "opacity 0.8s ease",
+                    }}
                   >
                     <p
                       className="font-bold text-lg text-white whitespace-nowrap text-left"
                       style={{ textShadow: "0 1px 6px rgba(0,0,0,0.3)" }}
                     >
                       <span>{SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}</span>
-                      <span className="animate-blink">|</span>
                       <span className="invisible">{SUCCESS_MESSAGE.slice(typedMessageIndex + 1)}</span>
                     </p>
                   </div>
@@ -490,6 +504,38 @@ export default function Home() {
           </div>
         )}
 
+      {/* Message interlude — big text over clouds before wipe */}
+      {phase === "success" && successStep >= 6 && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center"
+          style={{
+            opacity: messageVisible ? 1 : 0,
+            transition: "opacity 0.8s ease",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="rounded-2xl backdrop-blur-lg bg-black/20 px-14 py-10"
+            style={{
+              boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+            }}
+          >
+            <p
+              className="text-5xl text-center text-white leading-tight"
+              style={{
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 800,
+                textShadow: "0 2px 16px rgba(0,0,0,0.4), 0 0 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              Here are some pretty<br />
+              <span style={{ color: "#f9d1dc" }}>skies and clouds</span><br />
+              that remind me of you!
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Card wipe overlay — stays rendered after wiping to finish exit animation */}
       {phase !== "input" && phase !== "success" && (
         <div className="pointer-events-none fixed inset-0 z-30 flex">
@@ -498,8 +544,9 @@ export default function Home() {
             return (
             <div
               key={i}
-              className={`${CARD_COLORS[i]} rounded-2xl shadow-lg overflow-hidden`}
+              className="rounded-2xl shadow-lg overflow-hidden"
               style={{
+                backgroundColor: CARD_COLORS[i],
                 height: "120vh",
                 margin: "0 -8px",
                 flex: activeCard === i ? 5 : 1,
@@ -516,12 +563,15 @@ export default function Home() {
                 className="flex items-center justify-center"
                 style={{ height: "100vh" }}
               >
-                <div
-                  className={`${SPOTLIGHT_COLORS[i]} rounded-2xl`}
+                <img
+                  src={CARD_IMAGES[i]}
+                  alt=""
+                  className="rounded-2xl object-cover"
                   style={{
-                    width: "80%",
-                    height: "60%",
+                    width: "440px",
+                    height: "560px",
                     opacity: activeCard === i ? 1 : 0,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15)",
                     transition: "opacity 0.3s ease",
                   }}
                 />
