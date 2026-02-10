@@ -51,7 +51,7 @@ function getWordInterval(index: number, total: number): number {
 
 const SUCCESS_MESSAGE = "this is for you";
 
-type Phase = "input" | "success" | "wiping" | "showcase" | "words" | "done";
+type Phase = "volume" | "input" | "success" | "wiping" | "showcase" | "words" | "done";
 
 export default function Home() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -59,7 +59,8 @@ export default function Home() {
   const [bouncing, setBouncing] = useState<boolean[]>(
     Array(NUM_CHARS).fill(false)
   );
-  const [phase, setPhase] = useState<Phase>("input");
+  const [phase, setPhase] = useState<Phase>("volume");
+  const [volumeExiting, setVolumeExiting] = useState(false);
   const [cardsUp, setCardsUp] = useState(false);
   const [cardsOut, setCardsOut] = useState(false);
   const [inputHidden, setInputHidden] = useState(false);
@@ -69,6 +70,17 @@ export default function Home() {
   const [typedMessageIndex, setTypedMessageIndex] = useState(-1);
   const [letterKey, setLetterKey] = useState(0);
   const [isMobile, setIsMobile] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleVolumeReady = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    }
+    setVolumeExiting(true);
+    setTimeout(() => setPhase("input"), 600);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -286,6 +298,35 @@ export default function Home() {
     <>
     {phase === "done" && <ReactLenis root />}
     <div className={`relative min-h-screen bg-base-100 ${phase === "done" ? "overflow-y-auto" : "overflow-hidden"}`}>
+      {/* DEV: test telegram notification */}
+      <button
+        onClick={() => fetch("/api/notify", { method: "POST" })}
+        className="fixed top-4 left-4 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
+      >
+        Test TG
+      </button>
+      {/* Volume gate */}
+      {phase === "volume" && (
+        <div
+          className="flex min-h-screen items-center justify-center"
+          style={{
+            opacity: volumeExiting ? 0 : 1,
+            transform: volumeExiting ? "scale(0.98)" : "scale(1)",
+            transition: "opacity 0.5s ease, transform 0.5s ease",
+          }}
+        >
+          <div className="flex flex-col items-center gap-6">
+            <p className="text-lg text-base-content/70" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Please turn your volume up! :D</p>
+            <button
+              onClick={handleVolumeReady}
+              className="btn btn-soft btn-primary btn-wide"
+            >
+              I&apos;m ready
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Password input */}
       {!inputHidden &&
         (phase === "input" || phase === "success" || phase === "wiping") && (
@@ -366,7 +407,7 @@ export default function Home() {
                 {successStep >= 4 && (
                   <p
                     className="absolute left-0 right-0 text-center font-bold text-lg mt-3 text-base-content"
-                    style={{ opacity: 0, animation: "fadeSlideUp 0.6s ease 0.1s both", top: "100%" }}
+                    style={{ opacity: 0, animation: "fadeIn 0.6s ease 0.1s both", top: "100%" }}
                   >
                     {SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}
                     <span className="animate-blink">|</span>
@@ -425,6 +466,8 @@ export default function Home() {
             key={currentWordIndex}
             className="text-6xl font-bold text-base-content select-none"
             style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 800,
               animation: `wordPulse ${getWordInterval(currentWordIndex, WORDS.length)}ms ease-in-out both`,
             }}
           >
@@ -516,17 +559,23 @@ export default function Home() {
                 Me
               </p>
               <div className="flex justify-center mt-12">
-                <a
-                  href="#"
+                <button
+                  onClick={async () => {
+                    await fetch("/api/notify", { method: "POST" });
+                  }}
                   className="btn btn-soft btn-primary btn-wide btn-lg"
                 >
                   Answer here
-                </a>
+                </button>
               </div>
             </div>
           </article>
         </div>
       )}
+
+      {/* Audio element — always mounted, plays on password success */}
+      <audio ref={audioRef} src="/song.mp3" loop preload="auto" />
+
 
       <style>{`
         @keyframes wordPulse {
