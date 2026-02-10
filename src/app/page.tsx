@@ -71,6 +71,13 @@ export default function Home() {
   const [letterKey, setLetterKey] = useState(0);
   const [isMobile, setIsMobile] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  // Check localStorage on mount
+  useEffect(() => {
+    if (localStorage.getItem("answered") === "true") setAnswered(true);
+  }, []);
 
   const handleVolumeReady = useCallback(() => {
     const audio = audioRef.current;
@@ -316,13 +323,21 @@ export default function Home() {
           }}
         >
           <div className="flex flex-col items-center gap-6">
-            <p className="text-lg text-base-content/70" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Please turn your volume up! :D</p>
-            <button
-              onClick={handleVolumeReady}
-              className="btn btn-soft btn-primary btn-wide"
-            >
-              I&apos;m ready
-            </button>
+            {isMobile ? (
+              <p className="text-sm text-base-content/50 text-center">
+                Open this on a computer
+              </p>
+            ) : (
+              <>
+                <p className="text-lg text-base-content/70" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Please turn your volume up! :D</p>
+                <button
+                  onClick={handleVolumeReady}
+                  className="btn btn-soft btn-primary btn-wide"
+                >
+                  I&apos;m ready
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -332,11 +347,6 @@ export default function Home() {
         (phase === "input" || phase === "success" || phase === "wiping") && (
           <div className="flex min-h-screen items-center justify-center">
             <div className="flex flex-col items-center">
-              {isMobile && phase === "input" && (
-                <p className="text-sm text-base-content/50 mb-4 text-center">
-                  Open this on a computer
-                </p>
-              )}
               {/* Inputs + crossfade word share the same spot */}
               <div className="relative">
                 {/* Input boxes */}
@@ -558,16 +568,38 @@ export default function Home() {
               <p className="text-lg font-semibold text-base-content mt-1 mb-12">
                 Me
               </p>
-              <div className="flex justify-center mt-12">
-                <button
-                  onClick={async () => {
-                    await fetch("/api/notify", { method: "POST" });
-                  }}
-                  className="btn btn-soft btn-primary btn-wide btn-lg"
-                >
-                  Answer here
-                </button>
+              <div className="flex flex-col items-center mt-12 gap-3">
+                {answered ? (
+                  <p className="text-sm text-base-content/50">Thanks for checking this out — I&apos;ll chat you in a bit!</p>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      await fetch("/api/notify", { method: "POST" });
+                      localStorage.setItem("answered", "true");
+                      setShowModal(true);
+                    }}
+                    className="btn btn-soft btn-primary btn-wide btn-lg"
+                  >
+                    Answer here
+                  </button>
+                )}
               </div>
+
+              {/* Modal */}
+              {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                  <div className="bg-base-100 rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
+                    <p className="text-lg font-semibold text-base-content mb-2">One sec, I&apos;ll message you!</p>
+                    <p className="text-sm text-base-content/60 mb-6">Check your phone :)</p>
+                    <button
+                      onClick={() => { setShowModal(false); setAnswered(true); }}
+                      className="btn btn-soft btn-primary"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </article>
         </div>
