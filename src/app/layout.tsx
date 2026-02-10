@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Valentine's",
-  description: "Enter the password",
+  title: "For Gaile",
+  description: "Will you be my valentine?",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

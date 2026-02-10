@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { ReactLenis } from "lenis/react";
+import CloudBackground from "@/components/CloudBackground";
 
 const NUM_CHARS = 5;
 const NUM_CARDS = 6;
@@ -73,6 +74,7 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [answered, setAnswered] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [cloudsReady, setCloudsReady] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
@@ -304,13 +306,32 @@ export default function Home() {
   return (
     <>
     {phase === "done" && <ReactLenis root />}
-    <div className={`relative min-h-screen bg-base-100 ${phase === "done" ? "overflow-y-auto" : "overflow-hidden"}`}>
+    <div
+      className={`relative min-h-screen ${phase === "done" ? "overflow-y-auto" : "overflow-hidden"}`}
+    >
+      {/* White overlay — fades out to reveal clouds */}
+      <div
+        className="fixed inset-0 bg-white"
+        style={{
+          zIndex: -5,
+          opacity: volumeExiting || phase === "input" || phase === "success" || phase === "words" || phase === "done" ? 0 : 1,
+          transition: "opacity 0.6s ease",
+          pointerEvents: "none",
+        }}
+      />
       {/* DEV: test telegram notification */}
       <button
         onClick={() => fetch("/api/notify", { method: "POST" })}
         className="fixed top-4 left-4 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
       >
         Test TG
+      </button>
+      {/* DEV: reset answered state */}
+      <button
+        onClick={() => { localStorage.removeItem("answered"); setAnswered(false); }}
+        className="fixed top-4 left-24 z-50 btn btn-xs btn-ghost opacity-50 hover:opacity-100"
+      >
+        Reset
       </button>
       {/* Volume gate */}
       {phase === "volume" && (
@@ -332,7 +353,12 @@ export default function Home() {
                 <p className="text-lg text-base-content/70" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Please turn your volume up! :D</p>
                 <button
                   onClick={handleVolumeReady}
+                  disabled={!cloudsReady}
                   className="btn btn-soft btn-primary btn-wide"
+                  style={{
+                    opacity: cloudsReady ? 1 : 0,
+                    transition: "opacity 0.4s ease",
+                  }}
                 >
                   I&apos;m ready
                 </button>
@@ -342,10 +368,13 @@ export default function Home() {
         </div>
       )}
 
+      {/* Cloud background — visible only during input/success/words/done */}
+      <CloudBackground visible={volumeExiting || phase === "input" || phase === "success" || phase === "words" || phase === "done"} onReady={() => setCloudsReady(true)} />
+
       {/* Password input */}
       {!inputHidden &&
         (phase === "input" || phase === "success" || phase === "wiping") && (
-          <div className="flex min-h-screen items-center justify-center">
+          <div className="flex min-h-screen items-center justify-center pb-24">
             <div className="flex flex-col items-center">
               {/* Inputs + crossfade word share the same spot */}
               <div className="relative">
@@ -375,30 +404,23 @@ export default function Home() {
                       autoFocus={!isMobile && i === 0}
                       className={`input input-bordered text-center text-2xl font-semibold caret-transparent focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary${isMobile && phase === "input" ? " cursor-not-allowed pointer-events-none" : ""}`}
                       style={{
+                        fontFamily: "'Nunito', sans-serif",
+                        fontWeight: 800,
                         width: "2.75rem",
                         height: "2.75rem",
                         padding: 0,
                         transform: bouncing[i] ? "scale(0.9)" : "scale(1)",
                         borderColor:
-                          successStep >= 2
-                            ? "transparent"
-                            : successStep >= 1
-                              ? "rgb(74, 222, 128)"
-                              : undefined,
-                        backgroundColor:
-                          successStep >= 2
-                            ? "transparent"
-                            : successStep >= 1
-                              ? "rgba(74, 222, 128, 0.1)"
-                              : undefined,
+                          successStep >= 1
+                            ? "rgb(74, 222, 128)"
+                            : undefined,
+                        backgroundColor: "white",
                         boxShadow:
-                          successStep >= 2
-                            ? "none"
-                            : successStep >= 1
-                              ? "0 0 0 3px rgba(74, 222, 128, 0.25)"
-                              : bouncing[i]
-                                ? "0 0 0 3px rgba(99, 102, 241, 0.25)"
-                                : "none",
+                          successStep >= 1
+                            ? "0 0 0 3px rgba(74, 222, 128, 0.25)"
+                            : bouncing[i]
+                              ? "0 0 0 3px rgba(99, 102, 241, 0.25)"
+                              : "none",
                         transition: "all 0.8s ease",
                       }}
                     />
@@ -407,21 +429,27 @@ export default function Home() {
                 {/* Plain text word — fades in on top */}
                 {successStep >= 3 && (
                   <span
-                    className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-base-content"
-                    style={{ opacity: 0, animation: "fadeIn 0.8s ease 0.5s both" }}
+                    className="absolute inset-0 flex items-center justify-center text-2xl text-white"
+                    style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, opacity: 0, animation: "fadeIn 0.8s ease 0.5s both", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}
                   >
                     {values.join("")},
                   </span>
                 )}
-                {/* Typewriter — absolutely positioned below, no layout shift */}
+                {/* Typewriter — absolutely positioned below, fixed width so text types rightward */}
                 {successStep >= 4 && (
-                  <p
-                    className="absolute left-0 right-0 text-center font-bold text-lg mt-3 text-base-content"
-                    style={{ opacity: 0, animation: "fadeIn 0.6s ease 0.1s both", top: "100%" }}
+                  <div
+                    className="absolute mt-3"
+                    style={{ top: "100%", left: "50%", transform: "translateX(-50%)", opacity: 0, animation: "fadeIn 0.6s ease 0.1s both" }}
                   >
-                    {SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}
-                    <span className="animate-blink">|</span>
-                  </p>
+                    <p
+                      className="font-bold text-lg text-white whitespace-nowrap text-left"
+                      style={{ textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}
+                    >
+                      <span>{SUCCESS_MESSAGE.slice(0, typedMessageIndex + 1)}</span>
+                      <span className="animate-blink">|</span>
+                      <span className="invisible">{SUCCESS_MESSAGE.slice(typedMessageIndex + 1)}</span>
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -436,9 +464,10 @@ export default function Home() {
             return (
             <div
               key={i}
-              className={`${CARD_COLORS[i]} rounded-t-2xl shadow-lg overflow-hidden`}
+              className={`${CARD_COLORS[i]} rounded-2xl shadow-lg overflow-hidden`}
               style={{
                 height: "120vh",
+                margin: "0 -8px",
                 flex: activeCard === i ? 5 : 1,
                 transform: cardsOut
                   ? "translateY(-120vh)"
@@ -474,10 +503,11 @@ export default function Home() {
         <div className="fixed inset-0 z-20 flex items-center justify-center">
           <span
             key={currentWordIndex}
-            className="text-6xl font-bold text-base-content select-none"
+            className="text-6xl font-bold text-white select-none"
             style={{
               fontFamily: "'Nunito', sans-serif",
               fontWeight: 800,
+              textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)",
               animation: `wordPulse ${getWordInterval(currentWordIndex, WORDS.length)}ms ease-in-out both`,
             }}
           >
@@ -496,15 +526,15 @@ export default function Home() {
           >
             Replay
           </button>
-          <article key={letterKey} className="max-w-xl w-full text-left">
+          <article key={letterKey} className="max-w-2xl w-full text-left rounded-2xl backdrop-blur-lg bg-black/20 px-12 py-10" style={{ textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5)" }}>
             {/* Step 1: Greeting */}
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.2s both" }}>
-              <p className="text-4xl text-base-content mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Dear you,</p>
+              <p className="text-4xl text-white mb-8" style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>Dear you,</p>
             </div>
 
             {/* Body — paragraph by paragraph */}
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 0.6s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-4">
+              <p className="text-base text-white/80 leading-relaxed mb-4">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
                 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
                 enim ad minim veniam, quis nostrud exercitation ullamco laboris
@@ -514,7 +544,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.0s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-4">
+              <p className="text-base text-white/80 leading-relaxed mb-4">
                 Duis aute irure dolor in reprehenderit in voluptate velit esse
                 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                 cupidatat non proident, sunt in culpa qui officia deserunt
@@ -524,7 +554,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.4s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-4">
+              <p className="text-base text-white/80 leading-relaxed mb-4">
                 Curabitur pretium tincidunt lacus. Nulla gravida orci a odio.
                 Nullam varius, turpis et commodo pharetra, est eros bibendum
                 elit, nec luctus magna felis sollicitudin mauris. Integer in
@@ -533,7 +563,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 1.8s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-4">
+              <p className="text-base text-white/80 leading-relaxed mb-4">
                 Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies
                 nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget
                 condimentum rhoncus, sem quam semper libero, sit amet adipiscing
@@ -542,7 +572,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.2s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-4">
+              <p className="text-base text-white/80 leading-relaxed mb-4">
                 Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor
                 eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante,
                 dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra
@@ -552,7 +582,7 @@ export default function Home() {
               </p>
             </div>
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 2.6s both" }}>
-              <p className="text-base text-base-content/70 leading-relaxed mb-8">
+              <p className="text-base text-white/80 leading-relaxed mb-8">
                 Praesent congue erat at massa. Sed cursus turpis vitae tortor.
                 Donec posuere vulputate arcu. Phasellus accumsan cursus velit.
                 Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
@@ -564,19 +594,19 @@ export default function Home() {
 
             {/* Closing */}
             <div style={{ opacity: 0, animation: "fadeSlideUp 0.8s ease-out 3.0s both" }}>
-              <p className="text-base text-base-content/70">Forever yours,</p>
-              <p className="text-lg font-semibold text-base-content mt-1 mb-12">
+              <p className="text-base text-white/80">Forever yours,</p>
+              <p className="text-lg font-semibold text-white mt-1 mb-12">
                 Me
               </p>
               <div className="flex flex-col items-center mt-12 gap-3">
                 {answered ? (
-                  <p className="text-sm text-base-content/50">Thanks for checking this out — I&apos;ll chat you in a bit!</p>
+                  <p className="text-sm text-white/60">Thanks for checking this out — I&apos;ll chat you in a bit!</p>
                 ) : (
                   <button
-                    onClick={async () => {
-                      await fetch("/api/notify", { method: "POST" });
+                    onClick={() => {
                       localStorage.setItem("answered", "true");
                       setShowModal(true);
+                      fetch("/api/notify", { method: "POST" });
                     }}
                     className="btn btn-soft btn-primary btn-wide btn-lg"
                   >
@@ -585,21 +615,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Modal */}
-              {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                  <div className="bg-base-100 rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
-                    <p className="text-lg font-semibold text-base-content mb-2">One sec, I&apos;ll message you!</p>
-                    <p className="text-sm text-base-content/60 mb-6">Check your phone :)</p>
-                    <button
-                      onClick={() => { setShowModal(false); setAnswered(true); }}
-                      className="btn btn-soft btn-primary"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </article>
         </div>
@@ -633,6 +648,22 @@ export default function Home() {
         }
       `}</style>
     </div>
+
+    {/* Modal — top level so fixed positioning works correctly */}
+    {showModal && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="bg-base-100 rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
+          <p className="text-lg font-semibold text-base-content mb-2">One sec, I&apos;ll message you!</p>
+          <p className="text-sm text-base-content/60 mb-6">Check your phone :)</p>
+          <button
+            onClick={() => { setShowModal(false); setAnswered(true); }}
+            className="btn btn-soft btn-primary"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 }
